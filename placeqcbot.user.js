@@ -17,6 +17,7 @@
 
 var socket;
 var hasOrders = false;
+var isLoaded = false;
 var accessToken;
 var currentOrderCanvas = document.createElement('canvas');
 var currentOrderCtx = currentOrderCanvas.getContext('2d');
@@ -28,22 +29,28 @@ var serverUrl = "placeqc.nn.r.appspot.com";
 var serverProtocol = "https";
 
 const COLOR_MAPPINGS = {
+    '#BE0039': 1,
     '#FF4500': 2,
     '#FFA800': 3,
     '#FFD635': 4,
     '#00A368': 6,
+    '#00CC78': 7,
     '#7EED56': 8,
+    '#00756F': 9,
+    '#009EAA': 10,
     '#2450A4': 12,
     '#3690EA': 13,
     '#51E9F4': 14,
+    '#493AC1': 15,
+    '#6A5CFF': 16,
     '#811E9F': 18,
     '#B44AC0': 19,
+    '#FF3881': 22,
     '#FF99AA': 23,
+    '#6D482F': 24,
     '#9C6926': 25,
     '#000000': 27,
     '#898D90': 29,
-    '#D4D7D9': 30,
-    '#FFFFFF': 31
 };
 
 const pixelCount = canvasWidth * canvasHeight;
@@ -57,9 +64,12 @@ order.sort(() => Math.random() - 0.5);
     GM_addStyle(GM_getResourceText('TOASTIFY_CSS'));
     currentOrderCanvas.width = canvasWidth;
     currentOrderCanvas.height = canvasHeight;
+    currentOrderCanvas.style.display = 'none';
     currentOrderCanvas = document.body.appendChild(currentOrderCanvas);
+    
     currentPlaceCanvas.width = canvasWidth;
     currentPlaceCanvas.height = canvasHeight;
+    currentPlaceCanvas.style.display = 'none';
     currentPlaceCanvas = document.body.appendChild(currentPlaceCanvas);
 
     Toastify({
@@ -75,7 +85,28 @@ order.sort(() => Math.random() - 0.5);
     connectSocket();
     attemptPlace();
 })();
+/*
+function setupCanvasSize(canvasWidth, canvasHeight) {
+    currentOrderCanvas.width = canvasWidth;
+    currentOrderCanvas.height = canvasHeight;
 
+    currentPlaceCanvas.width = canvasWidth;
+    currentPlaceCanvas.height = canvasHeight;
+
+    if (!isLoaded) {
+        currentOrderCanvas = document.body.appendChild(currentOrderCanvas);
+        currentPlaceCanvas = document.body.appendChild(currentPlaceCanvas);
+    }
+    const pixelCount = canvasWidth * canvasHeight;
+
+    order = [];
+
+    for (var i = 0; i < pixelCount; i++) {
+        order.push(i);
+    }
+    order.sort(() => Math.random() - 0.5);
+}
+*/
 function connectSocket() {
     Toastify({
         text: 'Connexion au serveur PlaceQC...',
@@ -109,6 +140,15 @@ function connectSocket() {
                 currentOrderCtx = await getCanvasFromUrl(`${serverProtocol}://${serverUrl}/maps/${data.data}`, currentOrderCanvas);
                 hasOrders = true;
                 break;
+            // case 'map_config':
+// 
+            //     Toastify({
+            //         text: `Nouvelle configuration chargée (canvasWidth=${data.canvasWidth}, canvasHeight=${data.canvasHeight})`,
+            //         duration: 10000
+            //     }).showToast();
+// 
+            //     setupCanvasSize(data.canvasWidth, data.canvasHeight);
+            //     isLoaded = true;
             default:
                 break;
         }
@@ -126,7 +166,7 @@ function connectSocket() {
 }
 
 async function attemptPlace() {
-    if (!hasOrders) {
+    if (!hasOrders || !isLoaded) {
         setTimeout(attemptPlace, 2000); // probeer opnieuw in 2sec.
         return;
     }
@@ -198,7 +238,7 @@ async function attemptPlace() {
     }
 
     Toastify({
-        text: `Tous les pixels sont déjà au bon endroit ! Réessayez dans 30 secondes...`,
+        text: `Tous les pixels sont déjà au bon endroit ! Réessayez dans 30secondes...`,
         duration: 30000
     }).showToast();
     setTimeout(attemptPlace, 30000); // probeer opnieuw in 30sec.
@@ -283,7 +323,8 @@ async function getCurrentImageUrl() {
             if (!parsed.payload || !parsed.payload.data || !parsed.payload.data.subscribe || !parsed.payload.data.subscribe.data) return;
 
             ws.close();
-            resolve(parsed.payload.data.subscribe.data.name);
+            resolve(parsed.payload.data.subscribe.data.name + `?noCache=${Date.now() * Math.random()}`);
+
         }
 
         ws.onerror = reject;
