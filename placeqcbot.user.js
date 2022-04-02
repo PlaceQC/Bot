@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         PlaceQC Bot
 // @namespace    https://github.com/PlaceQC/Bot
-// @version      6
-// @description  De bot voor PlaceQC!
-// @author       NoahvdAa
+// @version      1
+// @description  Le bot pour PlaceQC
+// @author       N_O_P_E (Credit: NoahvdAa)
 // @match        https://www.reddit.com/r/place/*
 // @match        https://new.reddit.com/r/place/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=reddit.com
@@ -14,8 +14,6 @@
 // @grant        GM_getResourceText
 // @grant        GM_addStyle
 // ==/UserScript==
-
-// Sorry voor de rommelige code, haast en clean gaatn iet altijd samen ;)
 
 var socket;
 var hasOrders = false;
