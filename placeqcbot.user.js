@@ -76,7 +76,7 @@ function connectSocket() {
         duration: 10000
     }).showToast();
 
-    socket = new WebSocket('wss://localhost:3987/api/ws');
+    socket = new WebSocket('wss://placeqc.nn.r.appspot.com/api/ws');
 
     socket.onopen = function () {
         Toastify({
@@ -100,7 +100,7 @@ function connectSocket() {
                     text: `Nouvelle carte chargée (raison: ${data.reason ? data.reason : 'connecté au serveur'})`,
                     duration: 10000
                 }).showToast();
-                currentOrderCtx = await getCanvasFromUrl(`https://localhost:3987/maps/${data.data}`, currentOrderCanvas);
+                currentOrderCtx = await getCanvasFromUrl(`https://placeqc.nn.r.appspot.com/maps/${data.data}`, currentOrderCanvas);
                 hasOrders = true;
                 break;
             default:
