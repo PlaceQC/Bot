@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PlaceQC Bot
 // @namespace    https://github.com/PlaceQC/Bot
-// @version      1
+// @version      2
 // @description  Le bot pour PlaceQC
 // @author       N_O_P_E (Credit: NoahvdAa)
 // @match        https://www.reddit.com/r/place/*
@@ -22,6 +22,11 @@ var currentOrderCanvas = document.createElement('canvas');
 var currentOrderCtx = currentOrderCanvas.getContext('2d');
 var currentPlaceCanvas = document.createElement('canvas');
 
+var canvasHeight = 1000;
+var canvasWidth = 2000;
+var serverUrl = "placeqc.nn.r.appspot.com";
+var serverProtocol = "https";
+
 const COLOR_MAPPINGS = {
     '#FF4500': 2,
     '#FFA800': 3,
@@ -41,19 +46,20 @@ const COLOR_MAPPINGS = {
     '#FFFFFF': 31
 };
 
+const pixelCount = canvasWidth * canvasHeight;
 var order = [];
-for (var i = 0; i < 1000000; i++) {
+for (var i = 0; i < pixelCount; i++) {
     order.push(i);
 }
 order.sort(() => Math.random() - 0.5);
 
 (async function () {
     GM_addStyle(GM_getResourceText('TOASTIFY_CSS'));
-    currentOrderCanvas.width = 1000;
-    currentOrderCanvas.height = 1000;
+    currentOrderCanvas.width = canvasWidth;
+    currentOrderCanvas.height = canvasHeight;
     currentOrderCanvas = document.body.appendChild(currentOrderCanvas);
-    currentPlaceCanvas.width = 1000;
-    currentPlaceCanvas.height = 1000;
+    currentPlaceCanvas.width = canvasWidth;
+    currentPlaceCanvas.height = canvasHeight;
     currentPlaceCanvas = document.body.appendChild(currentPlaceCanvas);
 
     Toastify({
@@ -76,7 +82,7 @@ function connectSocket() {
         duration: 10000
     }).showToast();
 
-    socket = new WebSocket('wss://placeqc.nn.r.appspot.com/api/ws');
+    socket = new WebSocket(`wss://${serverUrl}/api/ws`);
 
     socket.onopen = function () {
         Toastify({
@@ -100,7 +106,7 @@ function connectSocket() {
                     text: `Nouvelle carte chargée (raison: ${data.reason ? data.reason : 'connecté au serveur'})`,
                     duration: 10000
                 }).showToast();
-                currentOrderCtx = await getCanvasFromUrl(`https://placeqc.nn.r.appspot.com/maps/${data.data}`, currentOrderCanvas);
+                currentOrderCtx = await getCanvasFromUrl(`${serverProtocol}://${serverUrl}/maps/${data.data}`, currentOrderCanvas);
                 hasOrders = true;
                 break;
             default:
@@ -138,8 +144,8 @@ async function attemptPlace() {
         return;
     }
 
-    const rgbaOrder = currentOrderCtx.getImageData(0, 0, 1000, 1000).data;
-    const rgbaCanvas = ctx.getImageData(0, 0, 1000, 1000).data;
+    const rgbaOrder = currentOrderCtx.getImageData(0, 0, canvasWidth, canvasHeight).data;
+    const rgbaCanvas = ctx.getImageData(0, 0, canvasWidth, canvasHeight).data;
 
     for (const i of order) {
         // negeer lege order pixels.
@@ -149,10 +155,10 @@ async function attemptPlace() {
         // Deze pixel klopt.
         if (hex === rgbToHex(rgbaCanvas[(i * 4)], rgbaCanvas[(i * 4) + 1], rgbaCanvas[(i * 4) + 2])) continue;
 
-        const x = i % 1000;
-        const y = Math.floor(i / 1000);
+        const x = i % canvasWidth;
+        const y = Math.floor(i / canvasHeight);
         Toastify({
-            text: `Essayer de publier un pixel sur ${x}, ${y}...`,
+            text: `Essai de publier un pixel sur ${x}, ${y}...`,
             duration: 10000
         }).showToast();
 
